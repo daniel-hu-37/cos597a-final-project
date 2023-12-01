@@ -51,7 +51,7 @@ class Tester:
         print()
         ground_truth = self.read_ivecs("data/siftsmall/siftsmall_groundtruth.ivecs")
         query = self.read_fvecs("data/siftsmall/siftsmall_query.fvecs")
-        k = 5
+        k = 10
 
         results = []
 
@@ -73,6 +73,8 @@ class Tester:
         for i, result in enumerate(results):
             print("Graph #: ", i)
             greedy, beam, time_taken = result
+            print("Greedy Length: ", len(greedy))
+            print("Beam Length: ", len(beam))
             greedy_recall = self.calculate_recall(greedy, true)
             beam_recall = self.calculate_recall(beam, true)
             print("Greedy Recall: ", greedy_recall)
@@ -118,10 +120,12 @@ class Tester:
 
 
 def main():
-    path = "../data/siftsmall/siftsmall_base.fvecs"
-    tester = Tester(path, graphs=[])
-    tester.test_all()
-    tester.dump_graphs()
+    path = "data/siftsmall/siftsmall_base.fvecs"
+    with open("graphs/graph-set-k5-m1.pkl", "rb") as f:
+        graph = pickle.load(f)
+        graph_list = [graph]
+        tester = Tester(path, graphs=graph_list)
+        tester.test_all()
 
 
 if __name__ == "__main__":
