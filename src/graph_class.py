@@ -271,7 +271,6 @@ class Graph:
             heapq.heappush(candidate_queue, (entry_dist, entry_node))
 
             temp_result_queue = []
-            flag = False
             while candidate_queue:
                 for i in range(min(beam_width, len(candidate_queue))):
                     candidate_dist, candidate_idx = heapq.heappop(candidate_queue)
@@ -289,8 +288,8 @@ class Graph:
                 if len(temp_result_queue) >= k:
                     cur_cand_dist = heapq.nsmallest(k, candidate_queue)[-1][0]
                     current_k_dist, _ = heapq.nsmallest(k, temp_result_queue)[-1]
-                    if candidate_dist > current_k_dist:
-                        flag = True
+                    if cur_cand_dist > current_k_dist:
+                        break
             result_queue = list(heapq.merge(result_queue, temp_result_queue))
 
         # print("beam visited: ", len(visited_set))
