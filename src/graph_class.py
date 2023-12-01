@@ -284,8 +284,6 @@ class Graph:
                                 temp_result_queue, (friend_dist, friend_node)
                             )
                             hops += 1
-                    if flag:
-                        break
                 if flag:
                     break
             result_queue = list(heapq.merge(result_queue, temp_result_queue))
