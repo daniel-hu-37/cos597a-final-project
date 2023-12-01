@@ -1,10 +1,10 @@
 import numpy as np
 from scipy.spatial import distance
 
-import pickle
 import heapq
 import random
 from typing import List, Tuple
+from tqdm import tqdm
 
 
 class Node:
@@ -110,8 +110,10 @@ class Graph:
         return heapq.nsmallest(k, result_queue), hops / m
 
     def build_nsw_greedy(self, index_factors: np.ndarray, k: int) -> List[Node]:
+        tqdm_loader = tqdm(index_factors)
+        tqdm_loader.set_description("Building Graph")
         graph = []
-        for i, value in enumerate(index_factors):
+        for i, value in enumerate(tqdm_loader):
             node = Node(i, value)
             if i > k:
                 neighbors, hops = self.greedy_search(graph, node.value, k)
