@@ -11,7 +11,6 @@
 
 module purge
 module load anaconda3/2023.9
-module load cudatoolkit/12.2
 conda activate nsw # TODO your conda environment 
 
-python src/create_graph.py # TODO any bash commands you would run in terminal can go here 
+python create_graph.py # TODO any bash commands you would run in terminal can go here 
