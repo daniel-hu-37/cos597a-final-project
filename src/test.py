@@ -113,9 +113,10 @@ class Tester:
 
 def main():
     path = "data/siftsmall/siftsmall_base.fvecs"
-    unpickle_graph = pickle.load(open("graphs/graph-nsw-greedy-k10.pkl", "rb"))
-    tester = Tester(path, graphs=[unpickle_graph])
-    tester.test_all()
+    with open("graphs/graph-nsw-greedy-k10.pkl", "rb") as pickle_file:
+        unpickle_graph = pickle.load(pickle_file)
+        tester = Tester(path, graphs=[unpickle_graph])
+        tester.test_all()
 
 
 if __name__ == "__main__":

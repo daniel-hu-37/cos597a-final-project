@@ -45,13 +45,18 @@ class Node:
 class Graph:
     """type: "nsw-greedy","""
 
-    def __init__(self, type, data):
+    def __init__(self, type, data, build_with_thresholding=False):
         self.type = type
         self.data = data
+        self.graph = (
+            self.build_with_thresholding(data)
+            if build_with_thresholding
+            else self.build_with_set_neighbors(data)
+        )
 
     def build_with_set_neighbors(
         self, index_factors: np.ndarray, k: int = 5
-    ) -> List[Node]:
+    ) -> dict[int:Node]:
         """
         Builds a Navigable Small World (NSW) graph using a greedy approach.
 
@@ -88,13 +93,13 @@ class Graph:
         """
         tqdm_loader = tqdm(index_factors)
         tqdm_loader.set_description("Building Graph")
-        graph = []
+        graph = {}
         for i, value in enumerate(tqdm_loader):
             node = Node(i, value)
             # if we already have more than k nodes in the graph, attach to the
             # k nearest neihgbors, found by greedy search
             if i > k:
-                neighbors, hops = self.greedy_search(graph, node.value, k)
+                neighbors, _ = self.greedy_search(graph, node.value, k)
                 neighbors_indices = [node_idx for _, node_idx in neighbors]
             else:
                 neighbors_indices = list(range(i))
@@ -104,25 +109,29 @@ class Graph:
             for i in neighbors_indices:
                 graph[i].neighborhood.add(node.idx)
 
-            graph.append(node)
+            graph[i] = node
 
         return graph
 
     def build_with_thresholding(
         self, index_factors: np.ndarray, threshold=0.5
-    ) -> List[Node]:
+    ) -> dict[int:Node]:
         tqdm_loader = tqdm(index_factors)
         tqdm_loader.set_description("Building Graph")
-        graph = [Node(idx, val) for idx, val in enumerate(tqdm_loader)]
+        graph = {idx: Node(idx, val) for idx, val in enumerate(tqdm_loader)}
 
         # initialize each node to be connected to the next node so that the
         # graph is fully connected
-        for node in graph[:-1]:
-            node.neighborhood.update(node.idx + 1)
-        graph[-1].neighborhood.update(0)
+        keys = list(graph.keys())
+        for key in keys[:-1]:
+            node = graph[key]
+            node.neighborhood.update(key + 1)
+        graph[keys[-1]].neighborhood.update(0)
 
-        for node in graph:
-            for other in graph:
+        for key in keys:
+            for other_key in keys:
+                node = graph[key]
+                other = graph[other_key]
                 if node.idx != other.idx:
                     # Calculate normalized difference
                     norm_diff = distance.cosine(node.value, other.value)
@@ -269,4 +278,10 @@ class Graph:
         """
         Deletes a node from the graph.
         """
-        pass
+        # first remove all references to the node
+        node = self.graph[idx]
+        for neighbor in node.neighborhood:
+            self.graph[neighbor].neighborhood.remove(idx)
+
+        # then delete from graph
+        del self.graph[idx]
