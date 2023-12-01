@@ -51,12 +51,13 @@ class Tester:
         results = []
 
         for graph in self.graphs:
+            graph_dict = graph.graph
             results_greedy = []
             results_beam = []
             start_time = datetime.now()
             for q in tqdm(query):
-                g = [r[1] for r in graph.greedy_search(graph, q, k=k)[0]]
-                b = [r[1] for r in graph.beam_search(graph, q, k=k)[0]]
+                g = [r[1] for r in graph.greedy_search(graph_dict, q, k=k)[0]]
+                b = [r[1] for r in graph.beam_search(graph_dict, q, k=k)[0]]
                 results_greedy.append(g)
                 results_beam.append(b)
             end_time = datetime.now()
@@ -114,8 +115,12 @@ class Tester:
 def main():
     path = "data/siftsmall/siftsmall_base.fvecs"
     with open("graphs/graph-nsw-greedy-k3.pkl", "rb") as f:
-        graph = pickle.load(f)
-        tester = Tester(path, graphs=[graph])
+        node_list = pickle.load(f)
+        graph = {}
+        for i, node in enumerate(node_list):
+            graph[i] = node
+        final_graph = graph_class.Graph(type="nsw-greedy", data=None, graph=graph)
+        tester = Tester(path, graphs=[final_graph])
         tester.test_all()
 
 
