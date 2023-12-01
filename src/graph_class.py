@@ -50,7 +50,7 @@ class Graph:
         self.data = data
 
     def greedy_search(
-        self, graph: List[Node], query: np.ndarray, k: int = 5, m: int = 50
+        self, graph: List[Node], query: np.ndarray, k: int = 10, m: int = 10
     ) -> Tuple[List[Tuple[float, int]], float]:
         """
         Performs knn search using the navigable small world graph.
@@ -110,7 +110,7 @@ class Graph:
 
         return heapq.nsmallest(k, result_queue), hops / m
 
-    def build_nsw_greedy(self, index_factors: np.ndarray, k: int) -> List[Node]:
+    def build_nsw_greedy(self, index_factors: np.ndarray, k: int = 5) -> List[Node]:
         """
         Builds a Navigable Small World (NSW) graph using a greedy approach.
 
