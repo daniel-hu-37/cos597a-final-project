@@ -1,11 +1,14 @@
 from datetime import datetime
 import numpy as np
 import graph_class
+import pickle
 
 
 class Tester:
-    def __init__(self, base_path):
+    def __init__(self, base_path, build_new_graph=True, graphs=[]):
         self.data = self.read_fvecs(base_path)
+        self.build_new_graph = build_new_graph
+        self.graphs = graphs
         pass
 
     def test_graph_construction(self):
@@ -16,6 +19,7 @@ class Tester:
 
         # Build with set neighbors
         sn_graph = graph_class.Graph(type="nsw-greedy", data=self.data)
+        sn_graph.build_with_set_neighbors(index_factors=sn_graph.data)
 
         end = datetime.now()
         print("Time taken: ", end - start)
@@ -26,17 +30,26 @@ class Tester:
 
         # Build with thresholding
         threshold_graph = graph_class.Graph(type="nsw-threshold", data=self.data)
+        sn_graph.build_with_set_neighbors(index_factors=threshold_graph.data)
 
         end = datetime.now()
         print("Time taken: ", end - start)
         print()
+        self.graphs.append(sn_graph)
+        self.graphs.append(threshold_graph)
 
     def test_graph_search(self):
         pass
 
     def test_all(self):
-        self.test_graph_construction()
+        if self.build_new_graph:
+            self.test_graph_construction()
         self.test_graph_search()
+
+    def dump_graphs(self):
+        for graph in self.graphs:
+            ms = str(datetime.now().timetuple()[6])
+            pickle.dump(graph, open("/graphs/" + ms, "wb"))
 
     def read_fvecs(self, fp):
         a = np.fromfile(fp, dtype="int32")
