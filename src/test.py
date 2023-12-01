@@ -2,7 +2,7 @@ from datetime import datetime
 import numpy as np
 import graph_class
 import pickle
-import tqdm
+from tqdm import tqdm
 
 
 class Tester:
@@ -113,9 +113,9 @@ class Tester:
 
 def main():
     path = "data/siftsmall/siftsmall_base.fvecs"
-    with open("graphs/graph-nsw-greedy-k10.pkl", "rb") as pickle_file:
-        unpickle_graph = pickle.load(pickle_file)
-        tester = Tester(path, graphs=[unpickle_graph])
+    with open("graphs/graph-nsw-greedy-k3.pkl", "rb") as f:
+        graph = pickle.load(f)
+        tester = Tester(path, graphs=[graph])
         tester.test_all()
 
 
