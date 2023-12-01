@@ -24,11 +24,11 @@ def main():
 
     g = Graph(type="nsw", data=base)
 
-    k = 10
+    k = 3
     print(g)
     graph = g.build_nsw_greedy(base, k)
 
-    with open("graph.pkl", "wb") as f:
+    with open("graphk3.pkl", "wb") as f:
         pickle.dump(graph, f)
 
 
