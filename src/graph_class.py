@@ -193,9 +193,9 @@ class Graph:
         self,
         graph: List[Node],
         query: np.ndarray,
-        k: int = 5,
-        m: int = 50,
-        beam_width: int = 10,
+        k: int = 10,
+        m: int = 10,
+        beam_width: int = 2,
     ) -> Tuple[List[Tuple[float, int]], float]:
         """
         Performs knn search using beam search on the navigable small world graph.
