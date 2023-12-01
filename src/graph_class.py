@@ -264,3 +264,9 @@ class Graph:
                 result_queue = list(heapq.merge(result_queue, temp_result_queue))
 
         return heapq.nsmallest(k, result_queue), hops / m
+
+    def delete_node(self, idx):
+        """
+        Deletes a node from the graph.
+        """
+        pass
