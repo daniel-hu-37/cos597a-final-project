@@ -4,7 +4,7 @@ import pickle
 import heapq
 import random
 from typing import List, Tuple
-
+from datetime import datetime
 from graph_class import Graph
 
 
@@ -22,14 +22,15 @@ def main():
     # take just one query (there are many in sift_learn.fvecs)
     # xq = xq[0].reshape(1, xq.shape[1])
 
-    g = Graph(type="nsw", data=base)
+    start = datetime.now()
+    g = Graph(
+        type="nsw-set-neighbors", data=base, build_with_thresholding=False, k=5, m=1
+    )
 
-    k = 3
-    print(g)
-    graph = g.build_nsw_greedy(base, k)
-
-    with open("graphk3.pkl", "wb") as f:
-        pickle.dump(graph, f)
+    end = datetime.now()
+    print("Time taken: ", end - start)
+    with open("graph-set-k5-m1.pkl", "wb") as f:
+        pickle.dump(g, f)
 
 
 if __name__ == "__main__":

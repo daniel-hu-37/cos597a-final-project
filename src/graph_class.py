@@ -45,17 +45,19 @@ class Node:
 class Graph:
     """type: "nsw-greedy","""
 
-    def __init__(self, type, data, build_with_thresholding=False):
+    def __init__(
+        self, type, data, build_with_thresholding=False, k: int = 5, m: int = 10
+    ):
         self.type = type
         self.data = data
         self.graph = (
-            self.build_with_thresholding(data)
+            self.build_with_thresholding(data, k, m)
             if build_with_thresholding
-            else self.build_with_set_neighbors(data)
+            else self.build_with_set_neighbors(data, k, m)
         )
 
     def build_with_set_neighbors(
-        self, index_factors: np.ndarray, k: int = 5
+        self, index_factors: np.ndarray, k: int = 5, m: int = 10
     ) -> dict[int:Node]:
         """
         Builds a Navigable Small World (NSW) graph using a greedy approach.
@@ -99,7 +101,7 @@ class Graph:
             # if we already have more than k nodes in the graph, attach to the
             # k nearest neihgbors, found by greedy search
             if i > k:
-                neighbors, _ = self.greedy_search(graph, node.value, k)
+                neighbors, _ = self.greedy_search(graph, node.value, k, m)
                 neighbors_indices = [node_idx for _, node_idx in neighbors]
             else:
                 neighbors_indices = list(range(i))
