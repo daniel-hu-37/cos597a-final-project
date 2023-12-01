@@ -27,7 +27,7 @@ def main():
         type="nsw-set-neighbors",
         data=base,
         build_with_thresholding=False,
-        k=5,
+        k=1,
         m=1,
         greedy=True,
     )
@@ -41,7 +41,7 @@ def main():
         data=base,
         build_with_thresholding=False,
         k=5,
-        m=5,
+        m=1,
         greedy=True,
     )
 
@@ -53,8 +53,8 @@ def main():
         type="nsw-set-neighbors",
         data=base,
         build_with_thresholding=False,
-        k=5,
-        m=10,
+        k=10,
+        m=1,
         greedy=True,
     )
 
@@ -66,8 +66,8 @@ def main():
         type="nsw-set-neighbors",
         data=base,
         build_with_thresholding=False,
-        k=5,
-        m=15,
+        k=15,
+        m=1,
         greedy=True,
     )
 
@@ -79,8 +79,8 @@ def main():
         type="nsw-set-neighbors",
         data=base,
         build_with_thresholding=False,
-        k=5,
-        m=20,
+        k=20,
+        m=1,
         greedy=True,
     )
 
@@ -92,8 +92,8 @@ def main():
         type="nsw-set-neighbors",
         data=base,
         build_with_thresholding=False,
-        k=5,
-        m=25,
+        k=25,
+        m=1,
         greedy=True,
     )
 
@@ -105,8 +105,8 @@ def main():
         type="nsw-set-neighbors",
         data=base,
         build_with_thresholding=False,
-        k=5,
-        m=30,
+        k=30,
+        m=1,
         greedy=True,
     )
 
