@@ -114,14 +114,8 @@ class Tester:
 
 def main():
     path = "data/siftsmall/siftsmall_base.fvecs"
-    with open("graphs/graph-nsw-greedy-k3.pkl", "rb") as f:
-        node_list = pickle.load(f)
-        graph = {}
-        for i, node in enumerate(node_list):
-            graph[i] = node
-        final_graph = graph_class.Graph(type="nsw-greedy", data=None, graph=graph)
-        tester = Tester(path, graphs=[final_graph])
-        tester.test_all()
+    tester = Tester(path, graphs=[])
+    tester.test_all()
 
 
 if __name__ == "__main__":
