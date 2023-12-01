@@ -49,85 +49,6 @@ class Graph:
         self.type = type
         self.data = data
 
-    def build_with_set_neighbors(
-        self, index_factors: np.ndarray, k: int = 5
-    ) -> List[Node]:
-        """
-        Builds a Navigable Small World (NSW) graph using a greedy approach.
-
-        This function iteratively adds nodes to the graph. Each node is connected to its k nearest neighbors
-        in the graph based on the distance between their respective high-dimensional data points.
-        For the first k nodes, they are connected to all previously added nodes.
-        The function uses a greedy search to find the nearest neighbors for each node.
-
-        Parameters
-        ----------
-        index_factors : np.ndarray
-            An array of high-dimensional data points. Each data point is used to create a node in the NSW graph.
-
-        k : int
-            The number of nearest neighbors to connect to each node in the graph.
-
-        Returns
-        -------
-        List[Node]
-            A list of Node objects, representing the nodes in the NSW graph. Each node contains information
-            about its index, its high-dimensional value, and a set of indices representing its neighbors.
-
-        Notes
-        -----
-        - The greedy search method used for finding nearest neighbors is dependent on the implementation
-            of the `greedy_search` method in the same class.
-        - The function provides a progress bar for tracking the graph construction process, using `tqdm`.
-        - Bi-directional connections are established between each node and its neighbors.
-
-        Examples
-        --------
-        >>> graph = Graph(type='nsw-greedy', data=some_data_array)
-        >>> nsw_graph = graph.build_nsw_greedy(index_factors=some_data_array, k=5)
-        """
-        tqdm_loader = tqdm(index_factors)
-        tqdm_loader.set_description("Building Graph")
-        graph = []
-        for i, value in enumerate(tqdm_loader):
-            node = Node(i, value)
-            # if we already have more than k nodes in the graph, attach to the
-            # k nearest neihgbors, found by greedy search
-            if i > k:
-                neighbors, hops = self.greedy_search(graph, node.value, k)
-                neighbors_indices = [node_idx for _, node_idx in neighbors]
-            else:
-                neighbors_indices = list(range(i))
-
-            # insert bi-directional connection
-            node.neighborhood.update(neighbors_indices)
-            for i in neighbors_indices:
-                graph[i].neighborhood.add(node.idx)
-
-            graph.append(node)
-
-        return graph
-
-    def build_with_thresholding(
-        self, index_factors: np.ndarray, threshold=0.5
-    ) -> List[Node]:
-        tqdm_loader = tqdm(index_factors)
-        tqdm_loader.set_description("Building Graph")
-        graph = [Node(idx, val) for idx, val in enumerate(tqdm_loader)]
-
-        for node in graph:
-            for other in graph:
-                if node.idx != other.idx:
-                    # Calculate normalized difference
-                    norm_diff = distance.cosine(node.value, other.value)
-
-                    # Connect nodes if difference is below threshold
-                    if norm_diff < threshold:
-                        node.neighborhood.add(other.idx)
-                        other.neighborhood.add(node.idx)
-
-        return graph
-
     def greedy_search(
         self, graph: List[Node], query: np.ndarray, k: int = 10, m: int = 10
     ) -> Tuple[List[Tuple[float, int]], float]:
@@ -189,13 +110,70 @@ class Graph:
 
         return heapq.nsmallest(k, result_queue), hops / m
 
+    def build_nsw_greedy(self, index_factors: np.ndarray, k: int = 5) -> List[Node]:
+        """
+        Builds a Navigable Small World (NSW) graph using a greedy approach.
+
+        This function iteratively adds nodes to the graph. Each node is connected to its k nearest neighbors
+        in the graph based on the distance between their respective high-dimensional data points.
+        For the first k nodes, they are connected to all previously added nodes.
+        The function uses a greedy search to find the nearest neighbors for each node.
+
+        Parameters
+        ----------
+        index_factors : np.ndarray
+            An array of high-dimensional data points. Each data point is used to create a node in the NSW graph.
+
+        k : int
+            The number of nearest neighbors to connect to each node in the graph.
+
+        Returns
+        -------
+        List[Node]
+            A list of Node objects, representing the nodes in the NSW graph. Each node contains information
+            about its index, its high-dimensional value, and a set of indices representing its neighbors.
+
+        Notes
+        -----
+        - The greedy search method used for finding nearest neighbors is dependent on the implementation
+            of the `greedy_search` method in the same class.
+        - The function provides a progress bar for tracking the graph construction process, using `tqdm`.
+        - Bi-directional connections are established between each node and its neighbors.
+
+        Examples
+        --------
+        >>> graph = Graph(type='nsw-greedy', data=some_data_array)
+        >>> nsw_graph = graph.build_nsw_greedy(index_factors=some_data_array, k=5)
+        """
+        tqdm_loader = tqdm(index_factors)
+        tqdm_loader.set_description("Building Graph")
+        graph = []
+        for i, value in enumerate(tqdm_loader):
+            node = Node(i, value)
+            # if we already have more than k nodes in the graph, attach to the
+            # k nearest neihgbors, found by greedy search
+            if i > k:
+                neighbors, hops = self.greedy_search(graph, node.value, k)
+                neighbors_indices = [node_idx for _, node_idx in neighbors]
+            else:
+                neighbors_indices = list(range(i))
+
+            # insert bi-directional connection
+            node.neighborhood.update(neighbors_indices)
+            for i in neighbors_indices:
+                graph[i].neighborhood.add(node.idx)
+
+            graph.append(node)
+
+        return graph
+
     def beam_search(
         self,
         graph: List[Node],
         query: np.ndarray,
-        k: int = 10,
-        m: int = 10,
-        beam_width: int = 2,
+        k: int = 5,
+        m: int = 50,
+        beam_width: int = 10,
     ) -> Tuple[List[Tuple[float, int]], float]:
         """
         Performs knn search using beam search on the navigable small world graph.
