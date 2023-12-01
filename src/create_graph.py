@@ -24,12 +24,12 @@ def main():
 
     start = datetime.now()
     g = Graph(
-        type="nsw-set-neighbors", data=base, build_with_thresholding=False, k=3, m=3
+        type="nsw-set-neighbors", data=base, build_with_thresholding=False, k=3, m=1
     )
 
     end = datetime.now()
     print("Time taken for set neighbors: ", end - start)
-    with open("fixed-graph-set-k3-m3.pkl", "wb") as f:
+    with open("fixed-graph-set-k3-m1.pkl", "wb") as f:
         pickle.dump(g, f)
 
 
