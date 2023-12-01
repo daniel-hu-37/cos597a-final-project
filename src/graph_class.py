@@ -54,6 +54,7 @@ class Graph:
         k: int = 5,
         m: int = 10,
         threshold=0.3,
+        greedy=True,
     ):
         self.type = type
         self.data = data
@@ -61,14 +62,14 @@ class Graph:
             self.graph = (
                 self.build_with_thresholding(data, threshold)
                 if build_with_thresholding
-                else self.build_with_set_neighbors(data, k, m)
+                else self.build_with_set_neighbors(data, k, m, greedy)
             )
         else:
             self.graph = graph
         self.size = len(list(self.graph.keys()))
 
     def build_with_set_neighbors(
-        self, index_factors: np.ndarray, k: int = 5, m: int = 10
+        self, index_factors: np.ndarray, k: int = 5, m: int = 10, greedy=True
     ) -> dict[int:Node]:
         """
         Builds a Navigable Small World (NSW) graph using a greedy approach.
@@ -112,7 +113,10 @@ class Graph:
             # if we already have more than k nodes in the graph, attach to the
             # k nearest neihgbors, found by greedy search
             if i > k:
-                neighbors, _ = self.greedy_search(graph, node.value, k, m)
+                if greedy:
+                    neighbors, _ = self.greedy_search(graph, node.value, k, m)
+                else:
+                    neighbors, _ = self.beam_search(graph, node.value, k, m)
                 neighbors_indices = [node_idx for _, node_idx in neighbors]
             else:
                 neighbors_indices = list(range(i))
@@ -219,6 +223,8 @@ class Graph:
                     break
 
             result_queue = list(heapq.merge(result_queue, temp_result_queue))
+
+        # print("greedy visited: ", len(visited_set))
         return heapq.nsmallest(k, result_queue), hops / m
 
     def beam_search(
@@ -288,6 +294,7 @@ class Graph:
                     break
             result_queue = list(heapq.merge(result_queue, temp_result_queue))
 
+        # print("beam visited: ", len(visited_set))
         return heapq.nsmallest(k, result_queue), hops / m
 
     def delete_node(self, idx):
