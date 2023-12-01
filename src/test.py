@@ -19,25 +19,30 @@ class Tester:
         start = datetime.now()
 
         # Build with set neighbors
-        sn_graph = graph_class.Graph(type="nsw-greedy", data=self.data)
-        sn_graph.build_with_set_neighbors(index_factors=sn_graph.data)
+        sn_graph = graph_class.Graph(
+            type="nsw-greedy", data=self.data, k=5, m=1, build_with_thresholding=False
+        )
 
         end = datetime.now()
         print("Time taken: ", end - start)
         print()
 
-        print("Testing thresholding construction...")
-        start = datetime.now()
+        # print("Testing thresholding construction...")
+        # start = datetime.now()
 
-        # Build with thresholding
-        threshold_graph = graph_class.Graph(type="nsw-threshold", data=self.data)
-        sn_graph.build_with_set_neighbors(index_factors=threshold_graph.data)
+        # # Build with thresholding
+        # threshold_graph = graph_class.Graph(
+        #     type="nsw-threshold",
+        #     data=self.data,
+        #     build_with_thresholding=True,
+        #     threshold=0.3,
+        # )
 
-        end = datetime.now()
+        # end = datetime.now()
         print("Time taken: ", end - start)
         print()
         self.graphs.append(sn_graph)
-        self.graphs.append(threshold_graph)
+        # self.graphs.append(threshold_graph)
 
     def test_graph_search(self):
         print()
@@ -113,9 +118,10 @@ class Tester:
 
 
 def main():
-    path = "data/siftsmall/siftsmall_base.fvecs"
+    path = "../data/siftsmall/siftsmall_base.fvecs"
     tester = Tester(path, graphs=[])
     tester.test_all()
+    tester.dump_graphs()
 
 
 if __name__ == "__main__":

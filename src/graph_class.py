@@ -45,14 +45,23 @@ class Node:
 class Graph:
     """type: "nsw-greedy","""
 
-    def __init__(self, type, data, graph=None, build_with_thresholding=False):
+    def __init__(
+        self,
+        type,
+        data,
+        graph=None,
+        build_with_thresholding=False,
+        k: int = 5,
+        m: int = 10,
+        threshold=0.3,
+    ):
         self.type = type
         self.data = data
         if not graph:
             self.graph = (
-                self.build_with_thresholding(data)
+                self.build_with_thresholding(data, threshold)
                 if build_with_thresholding
-                else self.build_with_set_neighbors(data)
+                else self.build_with_set_neighbors(data, k, m)
             )
         else:
             self.graph = graph
@@ -110,10 +119,9 @@ class Graph:
 
             # insert bi-directional connection
             node.neighborhood.update(neighbors_indices)
+            graph[i] = node
             for i in neighbors_indices:
                 graph[i].neighborhood.add(node.idx)
-
-            graph[i] = node
 
         return graph
 
@@ -129,10 +137,12 @@ class Graph:
         keys = list(graph.keys())
         for key in keys[:-1]:
             node = graph[key]
-            node.neighborhood.update(key + 1)
-        graph[keys[-1]].neighborhood.update(0)
+            node.neighborhood.add(key + 1)
+        graph[keys[-1]].neighborhood.add(0)
 
-        for key in keys:
+        tqdm_loader_2 = tqdm(keys)
+        tqdm_loader_2.set_description("This Vertex")
+        for i, key in enumerate(tqdm_loader_2):
             for other_key in keys:
                 node = graph[key]
                 other = graph[other_key]
@@ -178,7 +188,7 @@ class Graph:
         hops = 0
         for _ in range(m):
             # random entry point from all possible candidates
-            entry_node = random.randint(0, self.size - 1)
+            entry_node = random.randint(0, len(list(graph.keys())) - 1)
             entry_dist = distance.cosine(query, graph[entry_node].value)
             candidate_queue = []
             heapq.heappush(candidate_queue, (entry_dist, entry_node))
@@ -246,7 +256,7 @@ class Graph:
 
         hops = 0
         for _ in range(m):
-            entry_node = random.randint(0, self.size - 1)
+            entry_node = random.randint(0, len(list(graph.keys())) - 1)
             entry_dist = distance.cosine(query, graph[entry_node].value)
             candidate_queue = []
             heapq.heappush(candidate_queue, (entry_dist, entry_node))

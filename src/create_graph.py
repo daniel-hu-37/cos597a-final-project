@@ -28,7 +28,7 @@ def main():
     )
 
     end = datetime.now()
-    print("Time taken: ", end - start)
+    print("Time taken for set neighbors: ", end - start)
     with open("graph-set-k5-m1.pkl", "wb") as f:
         pickle.dump(g, f)
 
