@@ -1,14 +1,11 @@
 import numpy as np
 from scipy.spatial import distance
-import sys
-
-sys.path.append("..")
 import pickle
 import heapq
 import random
 from typing import List, Tuple
 
-from src.graph_class import Graph
+from graph_class import Graph
 
 
 # now define a function to read the fvecs file format of Sift1M dataset
