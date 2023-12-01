@@ -1,9 +1,4 @@
 import numpy as np
-
-
-import shutil
-import urllib.request as request
-from contextlib import closing
 from scipy.spatial import distance
 
 import pickle
@@ -138,10 +133,12 @@ def read_fvecs(fp):
 
 
 def main():
-    xb = read_fvecs("./sift/sift_base.fvecs")  # 1M samples
-
-    k = 10
-    graph = build_nsw_graph(xb, k)
+    base = read_fvecs("./siftsmall/siftsmall_base.fvecs")  # 1M samples
+    # also get some query vectors to search with
+    query = read_fvecs("./siftsmall/siftsmall_query.fvecs")
+    # take just one query (there are many in sift_learn.fvecs)
+    # xq = xq[0].reshape(1, xq.shape[1])
+    graph = build_nsw_graph(base, query)
 
     with open("graph.pkl", "wb") as f:
         pickle.dump(graph, f)
