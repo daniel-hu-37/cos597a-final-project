@@ -27,94 +27,16 @@ def main():
         type="nsw-set-neighbors",
         data=base,
         build_with_thresholding=False,
-        k=1,
-        m=1,
-        greedy=True,
-    )
-
-    end = datetime.now()
-    print("Time taken for set neighbors: ", end - start)
-
-    start = datetime.now()
-    g = Graph(
-        type="nsw-set-neighbors",
-        data=base,
-        build_with_thresholding=False,
         k=5,
-        m=1,
+        m=10,
         greedy=True,
     )
 
     end = datetime.now()
     print("Time taken for set neighbors: ", end - start)
 
-    start = datetime.now()
-    g = Graph(
-        type="nsw-set-neighbors",
-        data=base,
-        build_with_thresholding=False,
-        k=10,
-        m=1,
-        greedy=True,
-    )
-
-    end = datetime.now()
-    print("Time taken for set neighbors: ", end - start)
-
-    start = datetime.now()
-    g = Graph(
-        type="nsw-set-neighbors",
-        data=base,
-        build_with_thresholding=False,
-        k=15,
-        m=1,
-        greedy=True,
-    )
-
-    end = datetime.now()
-    print("Time taken for set neighbors: ", end - start)
-
-    start = datetime.now()
-    g = Graph(
-        type="nsw-set-neighbors",
-        data=base,
-        build_with_thresholding=False,
-        k=20,
-        m=1,
-        greedy=True,
-    )
-
-    end = datetime.now()
-    print("Time taken for set neighbors: ", end - start)
-
-    start = datetime.now()
-    g = Graph(
-        type="nsw-set-neighbors",
-        data=base,
-        build_with_thresholding=False,
-        k=25,
-        m=1,
-        greedy=True,
-    )
-
-    end = datetime.now()
-    print("Time taken for set neighbors: ", end - start)
-
-    start = datetime.now()
-    g = Graph(
-        type="nsw-set-neighbors",
-        data=base,
-        build_with_thresholding=False,
-        k=30,
-        m=1,
-        greedy=True,
-    )
-
-    end = datetime.now()
-    print("Time taken for set neighbors: ", end - start)
-
-    # with open("fixed-graph-set-k3-m1.pkl", "wb") as f:
-    #     pickle.dump(g, f)
+    with open("fixed-graph-set-k5-m10.pkl", "wb") as f:
+        pickle.dump(g, f)
 
 
 if __name__ == "__main__":
