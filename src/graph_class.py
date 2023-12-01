@@ -70,7 +70,6 @@ class Graph:
     def build_with_set_neighbors(
         self, index_factors: np.ndarray, k: int = 5, m: int = 10
     ) -> dict[int:Node]:
-        print("M IN CONSTRUCTION: ", m)
         """
         Builds a Navigable Small World (NSW) graph using a greedy approach.
 
