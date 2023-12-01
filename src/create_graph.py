@@ -27,15 +27,94 @@ def main():
         type="nsw-set-neighbors",
         data=base,
         build_with_thresholding=False,
-        k=3,
+        k=5,
         m=1,
-        greedy=False,
+        greedy=True,
     )
 
     end = datetime.now()
     print("Time taken for set neighbors: ", end - start)
-    with open("beam-graph-set-k3-m1.pkl", "wb") as f:
-        pickle.dump(g, f)
+
+    start = datetime.now()
+    g = Graph(
+        type="nsw-set-neighbors",
+        data=base,
+        build_with_thresholding=False,
+        k=5,
+        m=5,
+        greedy=True,
+    )
+
+    end = datetime.now()
+    print("Time taken for set neighbors: ", end - start)
+
+    start = datetime.now()
+    g = Graph(
+        type="nsw-set-neighbors",
+        data=base,
+        build_with_thresholding=False,
+        k=5,
+        m=10,
+        greedy=True,
+    )
+
+    end = datetime.now()
+    print("Time taken for set neighbors: ", end - start)
+
+    start = datetime.now()
+    g = Graph(
+        type="nsw-set-neighbors",
+        data=base,
+        build_with_thresholding=False,
+        k=5,
+        m=15,
+        greedy=True,
+    )
+
+    end = datetime.now()
+    print("Time taken for set neighbors: ", end - start)
+
+    start = datetime.now()
+    g = Graph(
+        type="nsw-set-neighbors",
+        data=base,
+        build_with_thresholding=False,
+        k=5,
+        m=20,
+        greedy=True,
+    )
+
+    end = datetime.now()
+    print("Time taken for set neighbors: ", end - start)
+
+    start = datetime.now()
+    g = Graph(
+        type="nsw-set-neighbors",
+        data=base,
+        build_with_thresholding=False,
+        k=5,
+        m=25,
+        greedy=True,
+    )
+
+    end = datetime.now()
+    print("Time taken for set neighbors: ", end - start)
+
+    start = datetime.now()
+    g = Graph(
+        type="nsw-set-neighbors",
+        data=base,
+        build_with_thresholding=False,
+        k=5,
+        m=30,
+        greedy=True,
+    )
+
+    end = datetime.now()
+    print("Time taken for set neighbors: ", end - start)
+
+    # with open("fixed-graph-set-k3-m1.pkl", "wb") as f:
+    #     pickle.dump(g, f)
 
 
 if __name__ == "__main__":
