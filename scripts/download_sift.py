@@ -7,15 +7,15 @@ import os
 
 # first we download the Sift1M dataset
 with closing(
-    request.urlopen("ftp://ftp.irisa.fr/local/texmex/corpus/sift.tar.gz")
+    request.urlopen("ftp://ftp.irisa.fr/local/texmex/corpus/siftsmall.tar.gz")
 ) as r:
-    with open("./data/sift.tar.gz", "wb") as f:
+    with open("./data/siftsmall.tar.gz", "wb") as f:
         shutil.copyfileobj(r, f)
 
 # the download leaves us with a tar.gz file, we unzip it
-tar = tarfile.open("./data/sift.tar.gz", "r:gz")
+tar = tarfile.open("./data/siftsmall.tar.gz", "r:gz")
 tar.extractall(path="./data/")
-os.remove("./data/sift.tar.gz")
+os.remove("./data/siftsmall.tar.gz")
 
 
 # now define a function to read the fvecs file format of Sift1M dataset
@@ -26,9 +26,9 @@ def read_fvecs(fp):
 
 
 # data we will search through
-xb = read_fvecs("./data/sift/sift_base.fvecs")  # 1M samples
+xb = read_fvecs("./data/siftsmall/siftsmall_base.fvecs")  # 1M samples
 # also get some query vectors to search with
-xq = read_fvecs("./data/sift/sift_query.fvecs")
+xq = read_fvecs("./data/siftsmall/siftsmall_query.fvecs")
 # take just one query (there are many in sift_learn.fvecs)
 xq = xq[0].reshape(1, xq.shape[1])
 
