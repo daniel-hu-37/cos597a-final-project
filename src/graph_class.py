@@ -43,32 +43,37 @@ class Node:
 
 
 class Graph:
-    """type: "nsw-greedy","""
-
     def __init__(
         self,
-        type,
         data,
         graph=None,
-        build_with_thresholding=False,
-        k: int = 5,
-        m: int = 10,
-        threshold=0.3,
+        build_k: int = 5,
+        build_m: int = 10,
         greedy=True,
     ):
-        self.type = type
-        self.data = data
+        """
+        Parameters
+        ----------
+        data : np.ndarray
+            An array of high-dimensional data points. Each data point is used to create a node in the NSW graph.
+
+        graph : dict(int : Node)
+            A dictionary of nodes, where each node is represented by a Node object. The key is the index of the node.
+
+        Notes
+        -----
+        - The greedy search method used for finding nearest neighbors is dependent on the implementation
+            of the `greedy_search` method in the same class.
+        - The function provides a progress bar for tracking the graph construction process, using `tqdm`.
+        - Bi-directional connections are established between each node and its neighbors.
+        """
         if not graph:
-            self.graph = (
-                self.build_with_thresholding(data, threshold)
-                if build_with_thresholding
-                else self.build_with_set_neighbors(data, k, m, greedy)
-            )
+            self.graph = self.build(data, build_k, build_m, greedy)
         else:
             self.graph = graph
-        self.size = len(list(self.graph.keys()))
+        # self.size = len(list(self.graph.keys()))
 
-    def build_with_set_neighbors(
+    def build(
         self, index_factors: np.ndarray, k: int = 5, m: int = 10, greedy=True
     ) -> dict[int:Node]:
         """
@@ -129,40 +134,44 @@ class Graph:
 
         return graph
 
-    def build_with_thresholding(
-        self, index_factors: np.ndarray, threshold=0.5
-    ) -> dict[int:Node]:
-        tqdm_loader = tqdm(index_factors)
-        tqdm_loader.set_description("Building Graph")
-        graph = {idx: Node(idx, val) for idx, val in enumerate(tqdm_loader)}
+    ###########################################################################
+    # def build_with_thresholding(
+    #     self, index_factors: np.ndarray, threshold=0.5
+    # ) -> dict[int:Node]:
+    #     tqdm_loader = tqdm(index_factors)
+    #     tqdm_loader.set_description("Building Graph")
+    #     graph = {idx: Node(idx, val) for idx, val in enumerate(tqdm_loader)}
 
-        # initialize each node to be connected to the next node so that the
-        # graph is fully connected
-        keys = list(graph.keys())
-        for key in keys[:-1]:
-            node = graph[key]
-            node.neighborhood.add(key + 1)
-        graph[keys[-1]].neighborhood.add(0)
+    #     # initialize each node to be connected to the next node so that the
+    #     # graph is fully connected
+    #     keys = list(graph.keys())
+    #     for key in keys[:-1]:
+    #         node = graph[key]
+    #         node.neighborhood.add(key + 1)
+    #     graph[keys[-1]].neighborhood.add(0)
 
-        tqdm_loader_2 = tqdm(keys)
-        tqdm_loader_2.set_description("This Vertex")
-        for i, key in enumerate(tqdm_loader_2):
-            for other_key in keys:
-                node = graph[key]
-                other = graph[other_key]
-                if node.idx != other.idx:
-                    # Calculate normalized difference
-                    norm_diff = distance.cosine(node.value, other.value)
+    #     tqdm_loader_2 = tqdm(keys)
+    #     tqdm_loader_2.set_description("This Vertex")
+    #     for i, key in enumerate(tqdm_loader_2):
+    #         for other_key in keys:
+    #             node = graph[key]
+    #             other = graph[other_key]
+    #             if node.idx != other.idx:
+    #                 # Calculate normalized difference
+    #                 norm_diff = distance.cosine(node.value, other.value)
 
-                    # Connect nodes if difference is below threshold
-                    if norm_diff < threshold:
-                        node.neighborhood.add(other.idx)
-                        other.neighborhood.add(node.idx)
+    #                 # Connect nodes if difference is below threshold
+    #                 if norm_diff < threshold:
+    #                     node.neighborhood.add(other.idx)
+    #                     other.neighborhood.add(node.idx)
 
-        return graph
+    #     return graph
+    ###########################################################################
+
+
 
     def greedy_search(
-        self, graph: List[Node], query: np.ndarray, k: int = 10, m: int = 10
+        self, graph: List[Node], query: np.ndarray, k: int = 10, m: int = 1
     ) -> Tuple[List[Tuple[float, int]], float]:
         """
         Performs knn search using the navigable small world graph.
@@ -189,10 +198,17 @@ class Graph:
         result_queue = []
         visited_set = set()
 
-        hops = 0
+        # hops = 0
         for _ in range(m):
-            # random entry point from all possible candidates
             entry_node = random.randint(0, len(list(graph.keys())) - 1)
+            self.single_it_greedy_search(graph, query, entry_node, k, result_queue, visited_set)
+
+        # print("greedy visited: ", len(visited_set))
+        # return heapq.nsmallest(k, result_queue), hops / m
+        return heapq.nsmallest(k, result_queue), m
+
+    def single_it_greedy_search(self, graph, query, entry_node, k, result_queue, visited_set):
+          # random entry point from all possible candidates
             entry_dist = distance.cosine(query, graph[entry_node].value)
             candidate_queue = []
             heapq.heappush(candidate_queue, (entry_dist, entry_node))
@@ -204,7 +220,7 @@ class Graph:
 
                 # if candidate is further than the k-th (furthest) element from the result,
                 # then we would break the repeat loop
-                if len(temp_result_queue) >= k:
+                if len(result_queue) >= k:
                     current_k_dist, _ = heapq.nsmallest(k, temp_result_queue)[-1]
                     if candidate_dist > current_k_dist:
                         flag = True
@@ -217,22 +233,19 @@ class Graph:
                         friend_dist = distance.cosine(query, graph[friend_node].value)
                         heapq.heappush(candidate_queue, (friend_dist, friend_node))
                         heapq.heappush(temp_result_queue, (friend_dist, friend_node))
-                        hops += 1
+                        # hops += 1
 
                 if flag:
                     break
 
             result_queue = list(heapq.merge(result_queue, temp_result_queue))
 
-        # print("greedy visited: ", len(visited_set))
-        return heapq.nsmallest(k, result_queue), hops / m
-
     def beam_search(
         self,
         graph: List[Node],
         query: np.ndarray,
         k: int = 5,
-        m: int = 10,
+        m: int = 1,
         beam_width: int = 10,
     ) -> Tuple[List[Tuple[float, int]], float]:
         """
@@ -272,7 +285,12 @@ class Graph:
 
             temp_result_queue = []
             while candidate_queue:
-                for i in range(min(beam_width, len(candidate_queue))):
+                if len(temp_result_queue) >= k:
+                    cur_cand_dist = heapq.nsmallest(k, candidate_queue)[0][0]
+                    current_k_dist, _ = heapq.nsmallest(k, temp_result_queue)[-1]
+                    if cur_cand_dist > current_k_dist:
+                        break
+                for _ in range(min(beam_width, len(candidate_queue))):
                     candidate_dist, candidate_idx = heapq.heappop(candidate_queue)
                     for friend_node in graph[candidate_idx].neighborhood:
                         if friend_node not in visited_set:
@@ -285,15 +303,15 @@ class Graph:
                                 temp_result_queue, (friend_dist, friend_node)
                             )
                             hops += 1
-                if len(temp_result_queue) >= k:
-                    cur_cand_dist = heapq.nsmallest(k, candidate_queue)[-1][0]
-                    current_k_dist, _ = heapq.nsmallest(k, temp_result_queue)[-1]
-                    if cur_cand_dist > current_k_dist:
-                        break
+
             result_queue = list(heapq.merge(result_queue, temp_result_queue))
 
         # print("beam visited: ", len(visited_set))
         return heapq.nsmallest(k, result_queue), hops / m
+
+    def single_it_beam_search(graph, query, k):
+        pass
+
 
     def delete_node(self, idx):
         """

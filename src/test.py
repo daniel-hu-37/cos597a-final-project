@@ -59,27 +59,31 @@ class Tester:
             graph_dict = graph.graph
             results_greedy = []
             results_beam = []
-            start_time = datetime.now()
+            greedy_time, beam_time = 0, 0
             for q in tqdm(query):
-                g = [r[1] for r in graph.greedy_search(graph_dict, q, k=k)[0]]
-                b = [r[1] for r in graph.beam_search(graph_dict, q, k=k)[0]]
+                start_time = datetime.now()
+                g = [r[1] for r in graph.greedy_search(graph_dict, q, k=k, m=10)[0]]
+                end_time = datetime.now()
+                greedy_time += (end_time - start_time).total_seconds()
+                start_time = datetime.now()
+                b = [r[1] for r in graph.beam_search(graph_dict, q, k=k, m=10)[0]]
+                end_time = datetime.now()
+                beam_time += (end_time - start_time).total_seconds()
                 results_greedy.append(g)
                 results_beam.append(b)
-            end_time = datetime.now()
-            results.append((results_greedy, results_beam, end_time - start_time))
+            results.append((results_greedy, results_beam))
 
         true = ground_truth[:, :k]
 
         for i, result in enumerate(results):
             print("Graph #: ", i)
-            greedy, beam, time_taken = result
-            print("Greedy Length: ", len(greedy))
-            print("Beam Length: ", len(beam))
+            greedy, beam = result
             greedy_recall = self.calculate_recall(greedy, true)
             beam_recall = self.calculate_recall(beam, true)
             print("Greedy Recall: ", greedy_recall)
             print("Beam Recall: ", beam_recall)
-            print("Time taken: ", time_taken)
+            print("Greedy Time: ", greedy_time)
+            print("Beam Time: ", beam_time)
 
         print()
 
