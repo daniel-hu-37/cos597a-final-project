@@ -168,8 +168,6 @@ class Graph:
     #     return graph
     ###########################################################################
 
-
-
     def greedy_search(
         self, graph: List[Node], query: np.ndarray, k: int = 10, m: int = 1
     ) -> Tuple[List[Tuple[float, int]], float]:
@@ -201,44 +199,43 @@ class Graph:
         # hops = 0
         for _ in range(m):
             entry_node = random.randint(0, len(list(graph.keys())) - 1)
-            self.single_it_greedy_search(graph, query, entry_node, k, result_queue, visited_set)
+            result_queue, visited_set = self.single_it_greedy_search(
+                graph, query, entry_node, k, result_queue, visited_set
+            )
 
         # print("greedy visited: ", len(visited_set))
         # return heapq.nsmallest(k, result_queue), hops / m
         return heapq.nsmallest(k, result_queue), m
 
-    def single_it_greedy_search(self, graph, query, entry_node, k, result_queue, visited_set):
-          # random entry point from all possible candidates
-            entry_dist = distance.cosine(query, graph[entry_node].value)
-            candidate_queue = []
-            heapq.heappush(candidate_queue, (entry_dist, entry_node))
+    def single_it_greedy_search(
+        self, graph, query, entry_node, k, result_queue, visited_set
+    ):
+        entry_dist = distance.cosine(query, graph[entry_node].value)
+        candidate_queue = []
+        heapq.heappush(candidate_queue, (entry_dist, entry_node))
 
-            temp_result_queue = []
-            flag = False
-            while candidate_queue:
-                candidate_dist, candidate_idx = heapq.heappop(candidate_queue)
-
-                # if candidate is further than the k-th (furthest) element from the result,
-                # then we would break the repeat loop
-                if len(result_queue) >= k:
-                    current_k_dist, _ = heapq.nsmallest(k, temp_result_queue)[-1]
-                    if candidate_dist > current_k_dist:
-                        flag = True
-
-                # iterate over neighbors and add them to candidates and results
-                for friend_node in graph[candidate_idx].neighborhood:
-                    if friend_node not in visited_set:
-                        visited_set.add(friend_node)
-
-                        friend_dist = distance.cosine(query, graph[friend_node].value)
-                        heapq.heappush(candidate_queue, (friend_dist, friend_node))
-                        heapq.heappush(temp_result_queue, (friend_dist, friend_node))
-                        # hops += 1
-
-                if flag:
+        temp_result_queue = []
+        while candidate_queue:
+            candidate_dist, candidate_idx = heapq.heappop(candidate_queue)
+            # if candidate is further than the k-th (furthest) element from the result,
+            # then we would break the repeat loop
+            if len(temp_result_queue) >= k:
+                current_k_dist, _ = heapq.nsmallest(k, temp_result_queue)[-1]
+                if candidate_dist > current_k_dist:
                     break
 
-            result_queue = list(heapq.merge(result_queue, temp_result_queue))
+            # iterate over neighbors and add them to candidates and results
+            for friend_node in graph[candidate_idx].neighborhood:
+                if friend_node not in visited_set:
+                    visited_set.add(friend_node)
+
+                    friend_dist = distance.cosine(query, graph[friend_node].value)
+                    heapq.heappush(candidate_queue, (friend_dist, friend_node))
+                    heapq.heappush(temp_result_queue, (friend_dist, friend_node))
+                    # hops += 1
+
+        result_queue = list(heapq.merge(result_queue, temp_result_queue))
+        return result_queue, visited_set
 
     def beam_search(
         self,
@@ -246,7 +243,7 @@ class Graph:
         query: np.ndarray,
         k: int = 5,
         m: int = 1,
-        beam_width: int = 10,
+        beam_width: int = 2,
     ) -> Tuple[List[Tuple[float, int]], float]:
         """
         Performs knn search using beam search on the navigable small world graph.
@@ -276,51 +273,66 @@ class Graph:
         result_queue = []
         visited_set = set()
 
-        hops = 0
+        # hops = 0
         for _ in range(m):
             entry_node = random.randint(0, len(list(graph.keys())) - 1)
-            entry_dist = distance.cosine(query, graph[entry_node].value)
-            candidate_queue = []
-            heapq.heappush(candidate_queue, (entry_dist, entry_node))
-
-            temp_result_queue = []
-            while candidate_queue:
-                if len(temp_result_queue) >= k:
-                    cur_cand_dist = heapq.nsmallest(k, candidate_queue)[0][0]
-                    current_k_dist, _ = heapq.nsmallest(k, temp_result_queue)[-1]
-                    if cur_cand_dist > current_k_dist:
-                        break
-                for _ in range(min(beam_width, len(candidate_queue))):
-                    candidate_dist, candidate_idx = heapq.heappop(candidate_queue)
-                    for friend_node in graph[candidate_idx].neighborhood:
-                        if friend_node not in visited_set:
-                            visited_set.add(friend_node)
-                            friend_dist = distance.cosine(
-                                query, graph[friend_node].value
-                            )
-                            heapq.heappush(candidate_queue, (friend_dist, friend_node))
-                            heapq.heappush(
-                                temp_result_queue, (friend_dist, friend_node)
-                            )
-                            hops += 1
-
-            result_queue = list(heapq.merge(result_queue, temp_result_queue))
+            result_queue, visited_set = self.single_it_beam_search(
+                graph, query, entry_node, k, result_queue, visited_set, beam_width
+            )
 
         # print("beam visited: ", len(visited_set))
-        return heapq.nsmallest(k, result_queue), hops / m
+        # return heapq.nsmallest(k, result_queue), hops / m
+        return heapq.nsmallest(k, result_queue), m
 
-    def single_it_beam_search(graph, query, k):
-        pass
+    def single_it_beam_search(
+        self, graph, query, entry_node, k, result_queue, visited_set, beam_width
+    ):
+        entry_dist = distance.cosine(query, graph[entry_node].value)
+        candidate_queue = []
+        heapq.heappush(candidate_queue, (entry_dist, entry_node))
+
+        temp_result_queue = []
+        while candidate_queue:
+            candidate_dist, candidate_idx = heapq.heappop(candidate_queue)
+
+            if len(temp_result_queue) >= k:
+                current_k_dist, _ = heapq.nsmallest(k, temp_result_queue)[-1]
+                if candidate_dist > current_k_dist:
+                    break
+
+            beams, beams_rest = [candidate_idx], []
+            for _ in range(min((beam_width - 1), len(candidate_queue) - 1)):
+                _, cand_idx = heapq.heappop(candidate_queue)
+                beams_rest.append(cand_idx)
+            beams.extend(beams_rest)
+
+            for idx in beams:
+                for friend_node in graph[idx].neighborhood:
+                    if friend_node not in visited_set:
+                        visited_set.add(friend_node)
+                        friend_dist = distance.cosine(query, graph[friend_node].value)
+                        heapq.heappush(candidate_queue, (friend_dist, friend_node))
+                        heapq.heappush(temp_result_queue, (friend_dist, friend_node))
+                        # hops += 1
+
+        result_queue = list(heapq.merge(result_queue, temp_result_queue))
+
+        return result_queue, visited_set
+
+    def random_init(self):
+        return random.randint(0, len(list(self.graph.keys())) - 1)
 
 
-    def delete_node(self, idx):
-        """
-        Deletes a node from the graph.
-        """
-        # first remove all references to the node
-        node = self.graph[idx]
-        for neighbor in node.neighborhood:
-            self.graph[neighbor].neighborhood.remove(idx)
+###########################################################################
+# def delete_node(self, idx):
+#     """
+#     Deletes a node from the graph.
+#     """
+#     # first remove all references to the node
+#     node = self.graph[idx]
+#     for neighbor in node.neighborhood:
+#         self.graph[neighbor].neighborhood.remove(idx)
 
-        # then delete from graph
-        del self.graph[idx]
+#     # then delete from graph
+#     del self.graph[idx]
+###########################################################################
