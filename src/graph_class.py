@@ -316,6 +316,107 @@ class Graph:
                         # hops += 1
 
         result_queue = list(heapq.merge(result_queue, temp_result_queue))
+        return result_queue, visited_set
+
+    def dynamic_beam_search(
+        self,
+        graph: List[Node],
+        query: np.ndarray,
+        k: int = 5,
+        m: int = 1,
+        beam_width: int = 2,
+        terminate: int = 4,
+    ) -> Tuple[List[Tuple[float, int]], float]:
+        """
+        Performs knn search using beam search on the navigable small world graph.
+
+        Parameters
+        ----------
+        graph :
+            Navigable small world graph from build_nsw_graph.
+
+        query : 1d np.ndarray
+            Query embedding that we wish to find the nearest neighbors.
+
+        k : int
+            Number of nearest neighbors returned.
+
+        m : int
+            The recall set will be chosen from m different entry points.
+
+        beam_width : int
+            Number of nodes to consider at each level of the search.
+
+        Returns
+        -------
+        The list of nearest neighbors (distance, index) tuple.
+        and the average number of hops that was made during the search.
+        """
+        result_queue = []
+        visited_set = set()
+
+        # hops = 0
+        for _ in range(m):
+            entry_node = random.randint(0, len(list(graph.keys())) - 1)
+            result_queue, visited_set = self.single_it_dynamic_search(
+                graph,
+                query,
+                entry_node,
+                k,
+                result_queue,
+                visited_set,
+                beam_width,
+                terminate,
+            )
+
+        # print("beam visited: ", len(visited_set))
+        # return heapq.nsmallest(k, result_queue), hops / m
+        return heapq.nsmallest(k, result_queue), m
+
+    def single_it_dynamic_search(
+        self,
+        graph,
+        query,
+        entry_node,
+        k,
+        result_queue,
+        visited_set,
+        beam_width,
+        terminate,
+    ):
+        entry_dist = distance.cosine(query, graph[entry_node].value)
+        candidate_queue = []
+        heapq.heappush(candidate_queue, (entry_dist, entry_node))
+
+        temp_result_queue = []
+        counter = 0
+        while candidate_queue:
+            if counter > terminate:
+                beam_width = 2
+            candidate_dist, candidate_idx = heapq.heappop(candidate_queue)
+
+            if len(temp_result_queue) >= k:
+                current_k_dist, _ = heapq.nsmallest(k, temp_result_queue)[-1]
+                if candidate_dist > current_k_dist:
+                    break
+
+            beams, beams_rest = [candidate_idx], []
+            for _ in range(min((beam_width - 1), len(candidate_queue) - 1)):
+                _, cand_idx = heapq.heappop(candidate_queue)
+                beams_rest.append(cand_idx)
+            beams.extend(beams_rest)
+
+            for idx in beams:
+                for friend_node in graph[idx].neighborhood:
+                    if friend_node not in visited_set:
+                        visited_set.add(friend_node)
+                        friend_dist = distance.cosine(query, graph[friend_node].value)
+                        heapq.heappush(candidate_queue, (friend_dist, friend_node))
+                        heapq.heappush(temp_result_queue, (friend_dist, friend_node))
+                        # hops += 1
+            counter += 1
+
+        result_queue = list(heapq.merge(result_queue, temp_result_queue))
 
         return result_queue, visited_set
 
